@@ -1,0 +1,93 @@
+def interpreter(ast):
+    variables = {}
+    
+    def clean(val):
+        if val in variables:
+            val = variables[val]
+    
+        # NEW: Handle boolean strings stored in variables
+        if val == "satya": return True
+        if val == "mithya": return False
+    
+        if isinstance(val, str) and val.isdigit():
+            return int(val)
+        return val
+
+    for node in ast:
+        if node["type"] == "Declaration":
+            variables[node["name"]] = node["value"]
+        
+        elif node["type"] == "Input":
+            mode = node["mode"]
+            var_name = node["name"]
+            
+            # 1. lekha (String Input)
+            if mode == "lekha":
+                variables[var_name] = input()
+                
+            # 2. gana (Number Input)
+            elif mode == "gana":
+                val = input()
+                if val.isdigit():
+                    variables[var_name] = int(val)
+                else:
+                    raise ValueError(f"gana pani sankya darakar,kintu milichi '{val}'")
+
+            # 3. pachara (Boolean Input)
+            elif mode == "pachara":
+                val = input().strip().lower()
+                # Map user input back to satya/mithya logic
+                if val == "satya":
+                    variables[var_name] = True
+                elif val == "mithya":
+                    variables[var_name] = False
+                else:
+                    raise ValueError(f"pachara pani <satya/mithya> darakar,kintu milichi '{val}'")
+        elif node["type"] == "Assignment":
+            name = node["name"]
+            e = node["expr"]
+            v1 = clean(e["l"])
+            v2 = clean(e["r"])
+            op = e["op"]
+
+            # Calculate the new value
+            if op == "+": res = v1 + v2
+            elif op == "-": res = v1 - v2
+            elif op == "*": res = v1 * v2
+            elif op == "/": res = v1 // v2
+            elif op == "^": res = v1 ** v2
+            elif op == None: res = v1
+            
+            # Update the variable in memory
+            variables[name] = res
+
+        elif node["type"] == "Print":
+            e = node["expr"]
+            v1 = clean(e["l"])
+            v2 = clean(e["r"])
+            op = e["op"]
+            
+            res = None
+            if op == "+": 
+                if isinstance(v1, int) and isinstance(v2, int): res = v1 + v2
+                else: res = str(v1) + str(v2)
+            elif op == "-": res = v1 - v2 if isinstance(v1, int) and isinstance(v2, int) else "Error"
+            elif op == "*": res = v1 * v2 if isinstance(v1, int) and isinstance(v2, int) else "Error"
+            elif op == "/": res = v1 // v2 if v2 != 0 else "0 bhaga error"
+            elif op == "^": res = v1 ** v2 if isinstance(v1, int) and isinstance(v2, int) else "Error"
+            elif op == "==": res = (v1 == v2)
+            elif op == "!=": res = (v1 != v2)
+            elif op == ">": res = (v1 > v2)
+            elif op == "<": res = (v1 < v2)
+            elif op == ">=": res = (v1 >= v2)
+            elif op == "<=": res = (v1 <= v2)
+            elif op == ",": res = f"{v1}{v2}"
+            elif op == None: res = v1
+            
+            # Use "in" or simple equality to catch both Python booleans and your custom strings
+            if res is True or res == "satya": 
+                print("satya")
+            elif res is False or res == "mithya": 
+                print("mithya")
+            elif res is not None: 
+                print(res)

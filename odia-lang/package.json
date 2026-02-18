@@ -1,0 +1,41 @@
+{
+  "name": "odia-lang",
+  "displayName": "odia",
+  "description": "support for odia",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.109.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "od",
+        "aliases": [
+          "odia",
+          "Odia"
+        ],
+        "extensions": [
+          ".od"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "od",
+        "scopeName": "source.od",
+        "path": "./syntaxes/od.tmLanguage.json"
+      }
+    ],
+    "iconThemes": [
+      {
+        "id": "odia-icons",
+        "label": "Odia Icons",
+        "path": "./odia-icon-theme.json"
+      }
+    ]
+  }
+}

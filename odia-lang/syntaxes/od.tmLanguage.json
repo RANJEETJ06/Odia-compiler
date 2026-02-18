@@ -1,0 +1,17 @@
+{
+  "patterns": [
+    {
+      "name": "entity.name.function.od",
+      "match": "\\b(bhai|kuha)\\b"
+    },
+    {
+      "name": "string.quoted.double.od",
+      "begin": "\"",
+      "end": "\""
+    },
+    {
+      "name": "constant.numeric.od",
+      "match": "\\b\\d+\\b"
+    }
+  ]
+}

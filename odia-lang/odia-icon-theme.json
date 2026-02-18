@@ -1,0 +1,6 @@
+{
+  "iconDefinitions": {
+    "odia_icon": { "iconPath": "./images/6156308.png" }
+  },
+  "fileExtensions": { "od": "odia_icon" }
+}
