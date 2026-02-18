@@ -1,6 +1,18 @@
 def interpreter(ast):
     variables = {}
     def evaluate_condition(cond):
+        # 1. Handle Complex Logical Expressions (o / athaba)
+        if "type" in cond and cond["type"] == "LogicalExpr":
+            left_val = evaluate_condition(cond["left"])  # Recursive call
+            right_val = evaluate_condition(cond["right"]) # Recursive call
+        
+            if cond["op"] == "o":      # and
+                return left_val and right_val
+            if cond["op"] == "athaba": # or
+                return left_val or right_val
+
+        # 2. Handle Simple Comparisons (x > 10)
+        # Only access "l" if it's NOT a LogicalExpr
         v1 = clean(cond["l"])
         v2 = clean(cond["r"])
         op = cond["op"]

@@ -1,4 +1,23 @@
-from constant import const_tokens
+def parse_condition(tokens):
+    # Get initial comparison (e.g., x > 5)
+    l = tokens.pop(0)["value"]
+    op = tokens.pop(0)["value"]
+    r = tokens.pop(0)["value"]
+    
+    node = {"l": l, "op": op, "r": r}
+
+    # If the next token is 'o' or 'athaba', wrap this in a LogicalExpr
+    if tokens and tokens[0]["value"] in ["o", "athaba"]:
+        logic_op = tokens.pop(0)["value"]
+        right_side = parse_condition(tokens) # Recursive call for chaining
+        return {
+            "type": "LogicalExpr",
+            "left": node,
+            "op": logic_op,
+            "right": right_side
+        }
+    return node
+
 def parser(tokens):
     ast = []
     while tokens:
@@ -34,9 +53,7 @@ def parser(tokens):
             # ... existing bhai, gana, kuha blocks ...
             elif token["value"] == "jadi":
                 # 1. Condition
-                l = tokens.pop(0)["value"]
-                op = tokens.pop(0)["value"]
-                r = tokens.pop(0)["value"]
+                condition = parse_condition(tokens)
     
                 tokens.pop(0) # skip '{'
     
@@ -52,17 +69,15 @@ def parser(tokens):
                     tokens.pop(0) # skip 'nahale'
                     # Check if it's an 'else if' or just 'else'
                     # In your logic: nahale + condition + { body }
-                    el_l = tokens.pop(0)["value"]
-                    el_op = tokens.pop(0)["value"]
-                    el_r = tokens.pop(0)["value"]
+                    el_condition = parse_condition(tokens)
         
                     tokens.pop(0) # skip '{'
                     el_body = []
                     while tokens[0]["value"] != "}":
                         el_body.append(tokens.pop(0))
                     tokens.pop(0) # skip '}'
-        
-                    elif_blocks.append({"condition": {"l": el_l, "op": el_op, "r": el_r}, "body": parser(el_body)})
+
+                    elif_blocks.append({"condition": el_condition, "body": parser(el_body)})
 
                 # 4. Handle 'sesa' (else)
                 else_body = []
@@ -75,7 +90,7 @@ def parser(tokens):
 
                 ast.append({
                     "type": "IfChain",
-                    "if_block": {"condition": {"l": l, "op": op, "r": r}, "body": parser(if_body)},
+                    "if_block": {"condition": condition, "body": parser(if_body)},
                     "elif_blocks": elif_blocks,
                     "else_body": parser(else_body)
                 })
