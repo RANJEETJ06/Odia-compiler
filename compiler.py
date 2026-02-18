@@ -14,9 +14,7 @@ def build(file_path):
         code = f.read()
 
     tokens = lexer(code)
-    print(tokens)
     ast = parser(tokens)
-    print(ast)  
 
     if ast:
         # Create a binary compiled file (.odc)

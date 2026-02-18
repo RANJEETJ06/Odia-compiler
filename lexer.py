@@ -55,7 +55,15 @@ def lexer(input_str):
 
         # ADDED '^' to this list
         if char in "=./*+-<>!,^":
-            tokens.append({"type": "operator", "value": char, "line": line, "column": column})
+            full_op = char
+            if cursor + 1 < length:
+                next_char = input_str[cursor + 1]
+                if (char + next_char) in ["==", ">=", "<=", "!="]:
+                    full_op = char + next_char
+                    cursor += 1 # Skip the extra character
+                    column += 1
+                    
+            tokens.append({"type": "operator", "value": full_op, "line": line, "column": start_col})
             cursor += 1; column += 1
             continue
 

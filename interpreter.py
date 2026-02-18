@@ -1,5 +1,17 @@
 def interpreter(ast):
     variables = {}
+    def evaluate_condition(cond):
+        v1 = clean(cond["l"])
+        v2 = clean(cond["r"])
+        op = cond["op"]
+    
+        if op == "==": return v1 == v2
+        elif op == "!=": return v1 != v2
+        elif op == ">":  return v1 > v2
+        elif op == "<":  return v1 < v2
+        elif op == ">=": return v1 >= v2
+        elif op == "<=": return v1 <= v2
+        return False
     
     def clean(val):
         if val in variables:
@@ -91,3 +103,15 @@ def interpreter(ast):
                 print("mithya")
             elif res is not None: 
                 print(res)
+        elif node["type"] == "IfChain":
+            if evaluate_condition(node["if_block"]["condition"]):
+                interpreter(node["if_block"]["body"])
+            else:
+                executed = False
+                for el_node in node["elif_blocks"]:
+                    if evaluate_condition(el_node["condition"]):
+                        interpreter(el_node["body"])
+                        executed = True
+                        break
+                if not executed and node["else_body"]:
+                    interpreter(node["else_body"])
