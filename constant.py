@@ -1,1 +1,1 @@
-const_tokens=["bhai", "kuha", "satya", "mithya","gana","lekha", "pachara","jadi","nahale","sesa","o","athaba"]
+const_tokens=["bhai", "kuha", "satya", "mithya","gana","lekha", "pachara","jadi","nahale","sesa","o","athaba","{", "}","parikhya"]

@@ -1,5 +1,6 @@
-def interpreter(ast):
-    variables = {}
+def interpreter(ast,variables=None):
+    if variables is None:
+        variables = {}
     def evaluate_condition(cond):
         # 1. Handle Complex Logical Expressions (o / athaba)
         if "type" in cond and cond["type"] == "LogicalExpr":
@@ -26,15 +27,20 @@ def interpreter(ast):
         return False
     
     def clean(val):
-        if val in variables:
+        if isinstance(val, str) and val in variables:
             val = variables[val]
     
         # NEW: Handle boolean strings stored in variables
         if val == "satya": return True
         if val == "mithya": return False
     
-        if isinstance(val, str) and val.isdigit():
-            return int(val)
+        if isinstance(val, str):
+            if val.isdigit():
+                print(f"Converting '{val}' to integer.")
+                return int(val)
+            # Handle negative numbers if needed
+            if val.startswith('-') and val[1:].isdigit():
+                return int(val)
         return val
 
     for node in ast:
@@ -51,8 +57,8 @@ def interpreter(ast):
                 
             # 2. gana (Number Input)
             elif mode == "gana":
-                val = input()
-                if val.isdigit():
+                val = int(input())
+                if val:
                     variables[var_name] = int(val)
                 else:
                     raise ValueError(f"gana pani sankya darakar,kintu milichi '{val}'")
@@ -117,13 +123,30 @@ def interpreter(ast):
                 print(res)
         elif node["type"] == "IfChain":
             if evaluate_condition(node["if_block"]["condition"]):
-                interpreter(node["if_block"]["body"])
+                interpreter(node["if_block"]["body"],variables)
             else:
                 executed = False
                 for el_node in node["elif_blocks"]:
                     if evaluate_condition(el_node["condition"]):
-                        interpreter(el_node["body"])
+                        interpreter(el_node["body"],variables)
                         executed = True
                         break
                 if not executed and node["else_body"]:
-                    interpreter(node["else_body"])
+                    interpreter(node["else_body"],variables)
+        # interpreter.py
+        elif node["type"] == "TypeCheck":
+            item = node["name"]
+            val = clean(item)
+            if isinstance(val, bool):
+                type_name = "Boolean (Satya/Mithya)"
+            elif isinstance(val, int):
+                type_name = "Anka (Number)"
+            elif isinstance(val, str):
+                type_name = "Sabda (String)"
+            else:
+                type_name = "Unknown"
+
+            if isinstance(val, (int,bool,str)) :
+                print(f"Variable '{item}' ra type heuchi: {type_name}")
+            else:
+                print(f"Literal value '{item}' ra type heuchi: {type_name}")

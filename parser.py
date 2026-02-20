@@ -1,9 +1,33 @@
+def get_block(tokens):
+    """Helper to collect tokens inside { } while handling nested brackets."""
+    block = []
+    balance = 1
+    tokens.pop(0) # skip the initial '{'
+    
+    while tokens and balance > 0:
+        t = tokens.pop(0)
+        if t["value"] == "{": balance += 1
+        if t["value"] == "}": balance -= 1
+        
+        if balance > 0: # Don't include the final closing '}'
+            block.append(t)
+    return block
+
 def parse_condition(tokens):
     # Get initial comparison (e.g., x > 5)
     l = tokens.pop(0)["value"]
     op = tokens.pop(0)["value"]
-    r = tokens.pop(0)["value"]
     
+    r_token = tokens.pop(0)
+    r = r_token["value"]
+
+    if r_token["type"] == "number":
+        r = int(r)
+    elif r == "satya":
+        r = True
+    elif r == "mithya":
+        r = False
+
     node = {"l": l, "op": op, "r": r}
 
     # If the next token is 'o' or 'athaba', wrap this in a LogicalExpr
@@ -26,8 +50,18 @@ def parser(tokens):
             if token["value"] == "bhai":
                 name = tokens.pop(0)["value"]
                 tokens.pop(0) # skip =
-                val = tokens.pop(0)["value"]
+                val_token = tokens.pop(0)
+                val = val_token["value"]
                 ast.append({"type": "Declaration", "name": name, "value": val})
+            
+            # parser.py
+            elif token["value"] == "parikhya":
+                # Usage: parikhya salary
+                target_var = tokens.pop(0)["value"]
+                ast.append({
+                    "type": "TypeCheck",
+                    "name": target_var
+                })
             
             elif token["value"] in ["gana", "lekha","pachara"]:
                 # The command should be followed by a variable name: "gana x"
@@ -54,14 +88,7 @@ def parser(tokens):
             elif token["value"] == "jadi":
                 # 1. Condition
                 condition = parse_condition(tokens)
-    
-                tokens.pop(0) # skip '{'
-    
-                # 2. Collect 'if' body
-                if_body = []
-                while tokens[0]["value"] != "}":
-                    if_body.append(tokens.pop(0))
-                tokens.pop(0) # skip '}'
+                if_body_tokens = get_block(tokens)
     
                 # 3. Handle 'nahale' (elif)
                 elif_blocks = []
@@ -70,29 +97,24 @@ def parser(tokens):
                     # Check if it's an 'else if' or just 'else'
                     # In your logic: nahale + condition + { body }
                     el_condition = parse_condition(tokens)
+                    el_body_tokens = get_block(tokens)
         
-                    tokens.pop(0) # skip '{'
-                    el_body = []
-                    while tokens[0]["value"] != "}":
-                        el_body.append(tokens.pop(0))
-                    tokens.pop(0) # skip '}'
+                    # tokens.pop(0) # skip '{'
 
-                    elif_blocks.append({"condition": el_condition, "body": parser(el_body)})
+                    elif_blocks.append({"condition": el_condition, "body": parser(el_body_tokens)})
 
                 # 4. Handle 'sesa' (else)
-                else_body = []
+                else_body_nodes = []
                 if tokens and tokens[0]["value"] == "sesa":
                     tokens.pop(0) # skip 'sesa'
-                    tokens.pop(0) # skip '{'
-                    while tokens[0]["value"] != "}":
-                        else_body.append(tokens.pop(0))
-                    tokens.pop(0) # skip '}'
+                    else_body_tokens = get_block(tokens)
+                    else_body_nodes = parser(else_body_tokens)
 
                 ast.append({
                     "type": "IfChain",
-                    "if_block": {"condition": condition, "body": parser(if_body)},
+                    "if_block": {"condition": condition, "body": parser(if_body_tokens)},
                     "elif_blocks": elif_blocks,
-                    "else_body": parser(else_body)
+                    "else_body": else_body_nodes
                 })
             elif token["type"] == "identifier":
                 # Handle Assignment: x = x + 5

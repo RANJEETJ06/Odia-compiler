@@ -25,9 +25,9 @@ def lexer(input_str):
             tokens.append({"type": "string", "value": string_val, "line": line, "column": start_col})
             continue
         
-        if char.isalpha():
+        if char.isalpha() or char == "_":
             word = ""; start_col = column
-            while cursor < length and input_str[cursor].isalnum():
+            while cursor < length and (input_str[cursor].isalnum() or input_str[cursor] == "_"):
                 word += input_str[cursor]
                 cursor += 1; column += 1
             
@@ -54,7 +54,8 @@ def lexer(input_str):
             continue
 
         # ADDED '^' to this list
-        if char in "=./*+-<>!,^":
+        if char in "=./*+-<>!,^{}":
+            start_col = column
             full_op = char
             if cursor + 1 < length:
                 next_char = input_str[cursor + 1]
